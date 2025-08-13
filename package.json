@@ -1,0 +1,38 @@
+{
+  "name": "complaint-portal-server",
+  "version": "1.0.0",
+  "description": "A a small complaint management portal that allows authenticated users to create, view, search, edit, and escalate complaints.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "npm run build && npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amirul-biz/complaint-portal-server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/amirul-biz/complaint-portal-server/issues"
+  },
+  "homepage": "https://github.com/amirul-biz/complaint-portal-server#readme",
+  "devDependencies": {
+    "@types/node": "^24.2.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.14.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.14.0",
+    "zod": "^4.0.17"
+  }
+}
