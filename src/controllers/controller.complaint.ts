@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import { ICreateComplaintRequest } from "../interface/interface.complaint.js";
+import { ICreateComplaintRequest } from "../interfaces/interface.complaint.js";
 import {
   modelCreateComplaint,
   modelGetComplaintById,
   modelGetPaginatedComplaints,
   modelUpdateComplaint,
 } from "../models/model.complaint.js";
+import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
+import { ApiErrorHelper } from "../utils/utils.error-helper.js";
 
 export async function controllerCreateComplain(
   req: Request,
@@ -17,7 +19,10 @@ export async function controllerCreateComplain(
       req.body as ICreateComplaintRequest;
 
     if (!title || !description || !userId || !statusId || !priorityId) {
-      return res.status(400).json({ error: "All fields are required" });
+      throw new ApiErrorHelper(
+        HttpStatusCodeEnum.BAD_REQUEST,
+        "All fields are required"
+      );
     }
 
     const response = await modelCreateComplaint({
@@ -28,9 +33,8 @@ export async function controllerCreateComplain(
       priorityId,
     });
 
-    return res.status(200).json(response);
+    return res.status(HttpStatusCodeEnum.OK).json(response);
   } catch (error) {
-    console.error("Error in controllerCreateComplain:", error);
     next(error);
   }
 }
@@ -44,20 +48,19 @@ export async function controllerGetComplaintById(
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ error: "Complaint ID is required" });
+      throw new ApiErrorHelper(
+        HttpStatusCodeEnum.BAD_REQUEST,
+        "Complaint ID is required"
+      );
     }
 
     const complaint = await modelGetComplaintById(id);
 
-    return res.status(200).json({
+    return res.status(HttpStatusCodeEnum.OK).json({
       message: "Complaint fetched successfully",
       complaint,
     });
   } catch (error) {
-    console.error("Error in controllerGetComplaintById:", error);
-    if (error instanceof Error && error.message.includes("not found")) {
-      return res.status(404).json({ error: error.message });
-    }
     next(error);
   }
 }
@@ -72,12 +75,17 @@ export async function controllerUpdateComplaint(
     const { statusId, priorityId } = req.body;
 
     if (!id) {
-      return res.status(400).json({ error: "Complaint ID is required" });
+      throw new ApiErrorHelper(
+        HttpStatusCodeEnum.BAD_REQUEST,
+        "Complaint ID is required"
+      );
     }
+
     if (!statusId || !priorityId) {
-      return res
-        .status(400)
-        .json({ error: "statusId and priorityId are required" });
+      throw new ApiErrorHelper(
+        HttpStatusCodeEnum.BAD_REQUEST,
+        "statusId and priorityId are required"
+      );
     }
 
     const response = await modelUpdateComplaint({
@@ -86,16 +94,16 @@ export async function controllerUpdateComplaint(
       priorityId: priorityId,
     });
 
-    return res.status(200).json(response);
+    return res.status(HttpStatusCodeEnum.OK).json(response);
   } catch (error) {
-    console.error("Error in controllerUpdateComplaint:", error);
     next(error);
   }
 }
 
 export async function controllergetPaginatedComplaints(
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) {
   try {
     const pageNumber = Number(req.query.pageNumber ?? 1);
@@ -113,12 +121,8 @@ export async function controllergetPaginatedComplaints(
       statusId: statusId,
     });
 
-    res.status(200).json(result);
+    res.status(HttpStatusCodeEnum.OK).json(result);
   } catch (error) {
-    console.error("Error in controllergetPaginatedComplaints:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch complaints",
-    });
+    next(error);
   }
 }
