@@ -13,4 +13,4 @@ app.get("/", (_req, res) => {
   res.json({ message: "Complaint Portal API is running" });
 });
 
-app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+app.listen(3000, () => console.log("Server runnings on http://localhost:3000"));
