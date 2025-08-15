@@ -1,13 +1,19 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { PrismaClient } from "@prisma/client";
-import { ILogin } from "../interfaces/interface.authenticate.js";
-import { ApiErrorHelper } from "../utils/utils.error-helper.js";
+import jwt from "jsonwebtoken";
 import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
+import { ILogin } from "../interfaces/interface.authenticate.js";
+import {
+  validateIsLoginHaveValidationError,
+  validateIsPasswordMatch,
+  validateIsTokenExist,
+} from "../services/service.authenticate.js";
+import { ApiErrorHelper } from "../utils/utils.error-helper.js";
 
 const prisma = new PrismaClient();
 
 export async function modelAuthenticateLogin(data: ILogin) {
+  validateIsLoginHaveValidationError(data);
+
   const user = await prisma.user.findUnique({
     where: { email: data.email },
   });
@@ -19,32 +25,24 @@ export async function modelAuthenticateLogin(data: ILogin) {
     );
   }
 
-  const isMatch = await bcrypt.compare(data.password, user.passwordHash);
-  if (!isMatch) {
-    throw new ApiErrorHelper(
-      HttpStatusCodeEnum.BAD_REQUEST,
-      "Invalid email or password"
-    );
-  }
+  await validateIsPasswordMatch(data.password, user.passwordHash);
 
   const payload = { id: user.id, name: user.name, email: user.email };
   const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "1h",
+    expiresIn: "5m",
   });
 
   return token;
 }
 
-export function modelAuthenticateRefreshToken(refreshToken: string) {
-  if (!refreshToken) {
-    throw new ApiErrorHelper(
-      HttpStatusCodeEnum.UNAUTHORIZED,
-      "Refresh token required"
-    );
-  }
+export function modelGetNewJWTToken(currentJWTToken: string) {
+  validateIsTokenExist(currentJWTToken);
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET as string);
+    const decoded = jwt.verify(
+      currentJWTToken,
+      process.env.JWT_SECRET as string
+    );
     return { data: decoded };
   } catch (err: any) {
     const isTokenExpired = err.message === "jwt expired";
@@ -53,14 +51,11 @@ export function modelAuthenticateRefreshToken(refreshToken: string) {
 
     switch (true) {
       case isTokenExpired: {
-        const decoded = jwt.decode(refreshToken) as jwt.JwtPayload | null;
-        if (!decoded) {
-          throw new ApiErrorHelper(
-            HttpStatusCodeEnum.FORBIDDEN,
-            invalidTokenMessage
-          );
-        }
-
+        const decoded = jwt.verify(
+          currentJWTToken,
+          process.env.JWT_SECRET as string,
+          { ignoreExpiration: true }
+        ) as jwt.JwtPayload;
         return { data: decoded };
       }
       case isTokenInvalid: {

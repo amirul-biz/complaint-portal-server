@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import {
   modelAuthenticateLogin,
-  modelAuthenticateRefreshToken,
+  modelGetNewJWTToken,
 } from "../models/model.authenticate.js";
 import { ILogin } from "../interfaces/interface.authenticate.js";
 
@@ -15,12 +15,6 @@ export async function controllerLogin(
   try {
     const { email, password } = req.body as ILogin;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        error: "Email and password are required",
-      });
-    }
-
     const token = await modelAuthenticateLogin({ email, password });
     res.json({ token });
   } catch (error) {
@@ -28,20 +22,18 @@ export async function controllerLogin(
   }
 }
 
-export const modelRefreshToken = (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
+export const controllerGetNewJWTToken = (req: Request, res: Response) => {
+  const { currentJWTToken } = req.body;
 
-  const response = modelAuthenticateRefreshToken(refreshToken);
+  const response = modelGetNewJWTToken(currentJWTToken);
 
-  const decodedPayload = response.data as jwt.JwtPayload;
+  const user = response.data as jwt.JwtPayload;
 
-  const newJwtToken = jwt.sign(
-    { username: decodedPayload.username },
-    process.env.JWT_SECRET as string,
-    {
-      expiresIn: "5m",
-    }
-  );
+  const payload = { id: user.id, name: user.name, email: user.email };
+
+  const newJwtToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
+    expiresIn: "5m",
+  });
 
   return res.json(newJwtToken);
 };

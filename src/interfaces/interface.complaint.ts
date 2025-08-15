@@ -4,17 +4,18 @@ import { StatusEnum } from "../contants/contant.status.enum.js";
 // Complain response
 export interface IGetComplaintResponse {
   id: string;
-  user: string;
+  customerName: string;
   title: string;
   description: string;
   createdAt: Date;
   updatedAt: Date;
-  priorityName: string;
-  priorityStatus: string;
+  priority: string;
+  status: string;
 }
 
 // Get paginated complain
 export interface IGetPaginatedComplaintRequest {
+  userId: string;
   pageNumber: number;
   pageSize: number;
   search?: string;
