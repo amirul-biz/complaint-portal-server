@@ -5,7 +5,9 @@ import {
   IGetPaginatedComplaintRequest,
   IGetPaginatedComplaintResponse,
   IUpdateComplaintRequest,
-} from "../interface/interface.complaint.js";
+} from "../interfaces/interface.complaint.js";
+import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
+import { ApiErrorHelper } from "../utils/utils.error-helper.js";
 
 const prisma = new PrismaClient();
 
@@ -25,8 +27,10 @@ export async function modelCreateComplaint(
 
     return "Complaint created successfully";
   } catch (error) {
-    console.error("Error creating complaint:", error);
-    throw error;
+    throw new ApiErrorHelper(
+      HttpStatusCodeEnum.INTERNAL_SERVER_ERROR,
+      "Error creating complaint"
+    );
   }
 }
 
@@ -44,7 +48,10 @@ export async function modelGetComplaintById(
     });
 
     if (!complaint) {
-      throw new Error(`Complaint with ID ${id} not found`);
+      throw new ApiErrorHelper(
+        HttpStatusCodeEnum.BAD_REQUEST,
+        `Complaint with ID ${id} not found`
+      );
     }
 
     return {
@@ -58,8 +65,10 @@ export async function modelGetComplaintById(
       priorityStatus: complaint.status.name,
     } as IGetComplaintResponse;
   } catch (error) {
-    console.error("Error fetching complaint by ID:", error);
-    throw error;
+    throw new ApiErrorHelper(
+      HttpStatusCodeEnum.INTERNAL_SERVER_ERROR,
+      "Error fetching complaint by ID"
+    );
   }
 }
 
@@ -77,8 +86,10 @@ export async function modelUpdateComplaint(
 
     return "Complaint updated successfully";
   } catch (error) {
-    console.error("Error updating complaint:", error);
-    throw error;
+    throw new ApiErrorHelper(
+      HttpStatusCodeEnum.INTERNAL_SERVER_ERROR,
+      "Error updating complaint"
+    );
   }
 }
 
@@ -137,7 +148,9 @@ export async function modelGetPaginatedComplaints(
       totalPageCount: totalPageCount,
     } as IGetPaginatedComplaintResponse;
   } catch (error) {
-    console.error("Error fetching paginated complaints:", error);
-    throw error;
+    throw new ApiErrorHelper(
+      HttpStatusCodeEnum.INTERNAL_SERVER_ERROR,
+      "Error fetching paginated complaints"
+    );
   }
 }
