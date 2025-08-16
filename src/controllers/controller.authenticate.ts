@@ -48,3 +48,14 @@ export const controllerGetNewJWTToken = (req: Request, res: Response) => {
 
   return res.json({ token: response.accessToken });
 };
+
+export const controllerLogout = (req: Request, res: Response) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    domain: "localhost",
+  });
+
+  return res.status(200).json({ message: "Logged out successfully" });
+};

@@ -14,7 +14,7 @@ const app = express();
 app.use(
   cors({
     origin: "http://localhost:4200",
-    methods: ["GET", "POST", "PATCH", "DELETE"],
+    methods: ["GET", "POST", "PATCH", "DELETE", "DELETE"],
     credentials: true,
   })
 );
@@ -34,4 +34,7 @@ app.get("/", (_req, res) => {
   res.json({ message: "Complaint Portal API is running" });
 });
 
-app.listen(3000, () => console.log("Server runnings on http://localhost:3000"));
+const port = process.env.PORT as string;
+app.listen(port, () =>
+  console.log(`Server runnings on http://localhost:${port}`)
+);

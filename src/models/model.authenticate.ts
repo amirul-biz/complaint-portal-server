@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
-import { IAuthTokens, ILogin } from "../interfaces/interface.authenticate.js";
+import { ILogin } from "../interfaces/interface.authenticate.js";
 import {
   validateIsLoginHaveValidationError,
   validateIsPasswordMatch,
@@ -29,11 +29,11 @@ export async function modelAuthenticateLogin(data: ILogin): Promise<{}> {
 
   const payload = { id: user.id, name: user.name, email: user.email };
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "1m",
+    expiresIn: "5s",
   });
 
   const refreshToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "7d",
+    expiresIn: "3h",
   });
 
   return { accessToken, refreshToken };
