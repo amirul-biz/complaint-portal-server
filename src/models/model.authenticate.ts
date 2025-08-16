@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
-import { ILogin } from "../interfaces/interface.authenticate.js";
+import { IAuthTokens, ILogin } from "../interfaces/interface.authenticate.js";
 import {
   validateIsLoginHaveValidationError,
   validateIsPasswordMatch,
@@ -11,7 +11,9 @@ import { ApiErrorHelper } from "../utils/utils.error-helper.js";
 
 const prisma = new PrismaClient();
 
-export async function modelAuthenticateLogin(data: ILogin) {
+export async function modelAuthenticateLogin(
+  data: ILogin
+): Promise<IAuthTokens> {
   validateIsLoginHaveValidationError(data);
 
   const user = await prisma.user.findUnique({
@@ -28,22 +30,37 @@ export async function modelAuthenticateLogin(data: ILogin) {
   await validateIsPasswordMatch(data.password, user.passwordHash);
 
   const payload = { id: user.id, name: user.name, email: user.email };
-  const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "5m",
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
+    expiresIn: "1m",
   });
 
-  return token;
+  const refreshToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
+    expiresIn: "7d",
+  });
+
+  return { accessToken, refreshToken };
 }
 
-export function modelGetNewJWTToken(currentJWTToken: string) {
-  validateIsTokenExist(currentJWTToken);
+export function modelGetNewJWTToken(refreshToken: string) {
+  validateIsTokenExist(refreshToken);
 
   try {
     const decoded = jwt.verify(
-      currentJWTToken,
+      refreshToken,
       process.env.JWT_SECRET as string
-    );
-    return { data: decoded };
+    ) as jwt.JwtPayload;
+
+    const payload = {
+      id: decoded.id,
+      name: decoded.name,
+      email: decoded.email,
+    };
+
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
+      expiresIn: "5m",
+    });
+
+    return { accessToken, refreshToken };
   } catch (err: any) {
     const isTokenExpired = err.message === "jwt expired";
     const isTokenInvalid = err.message === "invalid signature";
@@ -51,12 +68,10 @@ export function modelGetNewJWTToken(currentJWTToken: string) {
 
     switch (true) {
       case isTokenExpired: {
-        const decoded = jwt.verify(
-          currentJWTToken,
-          process.env.JWT_SECRET as string,
-          { ignoreExpiration: true }
-        ) as jwt.JwtPayload;
-        return { data: decoded };
+        throw new ApiErrorHelper(
+          HttpStatusCodeEnum.UNAUTHORIZED,
+          "Refresh token expired. Please login again."
+        );
       }
       case isTokenInvalid: {
         throw new ApiErrorHelper(
