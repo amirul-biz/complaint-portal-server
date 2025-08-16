@@ -42,7 +42,7 @@ export const middlewareJwtAuthenticator = (
   jwt.verify(token, process.env.JWT_SECRET as string, (err) => {
     if (!err) {
       const response = modelGetNewJWTToken(token);
-      const user = response.data as jwt.JwtPayload;
+      const user = response as jwt.JwtPayload;
 
       req.user = {
         id: user.id,

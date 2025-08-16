@@ -59,7 +59,7 @@ export async function validateIsExceedComplaintLimit(
 ): Promise<void> {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const maxComplaintLimit = 5;
+  const maxComplaintLimit = 20;
 
   const countComplain = await prisma.complaint.count({
     where: {
