@@ -15,18 +15,19 @@ export async function controllerLogin(
     const { email, password } = req.body as ILogin;
 
     const { accessToken, refreshToken } = await modelAuthenticateLogin({
-      email,
-      password,
+      email: email,
+      password: password,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      domain: "localhost",
     });
 
-    res.json({ accessToken });
+    res.json(accessToken);
   } catch (error) {
     next(error);
   }
@@ -34,14 +35,15 @@ export async function controllerLogin(
 
 export const controllerGetNewJWTToken = (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken as string;
-
+  console.log("current refresh tokem", refreshToken);
   const response = modelGetNewJWTToken(refreshToken);
 
   res.cookie("refreshToken", response.refreshToken, {
     httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+    secure: false,
+    sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    domain: "localhost",
   });
 
   return res.json(response.accessToken);

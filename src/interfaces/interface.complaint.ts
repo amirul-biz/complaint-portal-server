@@ -25,6 +25,9 @@ export interface IGetPaginatedComplaintRequest {
 export interface IGetPaginatedComplaintResponse {
   complaints: IGetComplaintResponse[];
   totalPageCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalComplaintsCount: number;
 }
 
 // Create complain

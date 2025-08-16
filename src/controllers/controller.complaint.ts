@@ -7,6 +7,9 @@ import {
   modelUpdateComplaint,
 } from "../models/model.complaint.js";
 import { ApiErrorHelper } from "../utils/utils.error-helper.js";
+import { getDecodedJwtInfo } from "../services/service.authenticate.js";
+import { PriorityEnum } from "../contants/constant.priority.enum.js";
+import { StatusEnum } from "../contants/contant.status.enum.js";
 
 export async function controllerCreateComplain(
   req: Request,
@@ -14,8 +17,11 @@ export async function controllerCreateComplain(
   next: NextFunction
 ) {
   try {
-    const { title, description, statusId, priorityId } = req.body;
-    const userId = req.user?.id as string;
+    const { title, description, priorityId } = req.body;
+    const refreshToken = req.cookies.refreshToken as string;
+    const data = getDecodedJwtInfo(refreshToken);
+    const userId = data.id;
+    const statusId = StatusEnum.NEW;
 
     const response = await modelCreateComplaint({
       title,
@@ -81,7 +87,9 @@ export async function controllergetPaginatedComplaints(
   next: NextFunction
 ) {
   try {
-    const userId = req.user?.id as string;
+    const refreshToken = req.cookies.refreshToken as string;
+    const data = getDecodedJwtInfo(refreshToken);
+    const userId = data.id;
     const pageNumber = Number(req.query.pageNumber ?? 1);
     const pageSize = Number(req.query.pageSize ?? 10);
 

@@ -31,7 +31,7 @@ export async function modelAuthenticateLogin(
 
   const payload = { id: user.id, name: user.name, email: user.email };
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "1m",
+    expiresIn: "1h",
   });
 
   const refreshToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
@@ -57,7 +57,7 @@ export function modelGetNewJWTToken(refreshToken: string) {
     };
 
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-      expiresIn: "5m",
+      expiresIn: "1h",
     });
 
     return { accessToken, refreshToken };

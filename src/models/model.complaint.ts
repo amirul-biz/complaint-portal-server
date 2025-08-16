@@ -24,7 +24,7 @@ const prisma = new PrismaClient();
 
 export async function modelCreateComplaint(
   data: ICreateComplaintRequest
-): Promise<string> {
+): Promise<{ complaint: IGetComplaintResponse }> {
   validateIsCreateRequestContainsEmptyField(data);
   validateIsHaveValidationError(data);
   await validateIsExceedComplaintLimit(data.userId);
@@ -32,7 +32,7 @@ export async function modelCreateComplaint(
     ? PriorityEnum.HIGH
     : data.priorityId;
 
-  await prisma.complaint.create({
+  const complaint = await prisma.complaint.create({
     data: {
       title: data.title,
       description: data.description,
@@ -40,9 +40,37 @@ export async function modelCreateComplaint(
       statusId: data.statusId,
       priorityId: priorityId,
     },
+    include: {
+      user: {
+        select: {
+          name: true,
+        },
+      },
+      status: {
+        select: {
+          name: true,
+        },
+      },
+      priority: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
-  return "Complaint created successfully";
+  const response: IGetComplaintResponse = {
+    id: complaint.id,
+    customerName: complaint.user.name,
+    title: complaint.title,
+    description: complaint.description,
+    createdAt: complaint.createdAt,
+    updatedAt: complaint.updatedAt,
+    priority: complaint.priority.name,
+    status: complaint.status.name,
+  };
+
+  return { complaint: response };
 }
 
 export async function modelGetComplaintById(
@@ -75,19 +103,35 @@ export async function modelGetComplaintById(
 export async function modelUpdateComplaint(
   data: IUpdateComplaintRequest,
   userId: string
-): Promise<string> {
+): Promise<{ complaint: IGetComplaintResponse }> {
   validateIsUpdateRequestContainsEmptyField(data);
   validateIsUserAllowedAction(data.id, userId);
 
-  await prisma.complaint.update({
+  const complaint = await prisma.complaint.update({
     where: { id: data.id },
     data: {
       statusId: data.statusId,
       priorityId: data.priorityId,
     },
+    include: {
+      user: { select: { name: true } },
+      status: { select: { name: true } },
+      priority: { select: { name: true } },
+    },
   });
 
-  return "Complaint updated successfully";
+  const updatedComplaint = {
+    id: complaint.id,
+    customerName: complaint.user.name,
+    title: complaint.title,
+    description: complaint.description,
+    createdAt: complaint.createdAt,
+    updatedAt: complaint.updatedAt,
+    priority: complaint.priority.name,
+    status: complaint.status.name,
+  };
+
+  return { complaint: updatedComplaint };
 }
 
 export async function modelGetPaginatedComplaints(
@@ -143,5 +187,8 @@ export async function modelGetPaginatedComplaints(
   return {
     complaints: complaints,
     totalPageCount: totalPageCount,
+    totalComplaintsCount: totalCount,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
   } as IGetPaginatedComplaintResponse;
 }
