@@ -15,7 +15,7 @@ routerComplaint.post(
   controllerCreateComplain
 );
 routerComplaint.get(
-  "/complaints",
+  "/complaints-listing",
   middlewareJwtAuthenticator,
   controllergetPaginatedComplaints
 );

@@ -187,5 +187,8 @@ export async function modelGetPaginatedComplaints(
   return {
     complaints: complaints,
     totalPageCount: totalPageCount,
+    totalComplaintsCount: totalCount,
+    pageNumber: pageNumber,
+    pageSize: pageSize,
   } as IGetPaginatedComplaintResponse;
 }
