@@ -5,11 +5,14 @@ import routerComplaint from "./routes/route.complaint.js";
 import routerAuthenticate from "./routes/route.authenticate.js";
 import { middlewareApiErrorHandler } from "./middleware/middleware.errorHandler.js";
 import routerMeta from "./routes/route.meta.js";
+import cookieParser from "cookie-parser";
+
 dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use("/", routerComplaint);
 app.use("/", routerAuthenticate);
 app.use("/", routerMeta);
