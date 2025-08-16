@@ -11,9 +11,7 @@ import { ApiErrorHelper } from "../utils/utils.error-helper.js";
 
 const prisma = new PrismaClient();
 
-export async function modelAuthenticateLogin(
-  data: ILogin
-): Promise<IAuthTokens> {
+export async function modelAuthenticateLogin(data: ILogin): Promise<{}> {
   validateIsLoginHaveValidationError(data);
 
   const user = await prisma.user.findUnique({
@@ -31,7 +29,7 @@ export async function modelAuthenticateLogin(
 
   const payload = { id: user.id, name: user.name, email: user.email };
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "1h",
+    expiresIn: "1m",
   });
 
   const refreshToken = jwt.sign(payload, process.env.JWT_SECRET as string, {

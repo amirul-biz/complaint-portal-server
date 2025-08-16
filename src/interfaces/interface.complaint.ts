@@ -13,6 +13,18 @@ export interface IGetComplaintResponse {
   status: string;
 }
 
+// get complaint by id Complain response
+export interface IGetComplaintByIdResponse {
+  id: string;
+  customerName: string;
+  title: string;
+  description: string;
+  createdAt: Date;
+  updatedAt: Date;
+  priorityId: string;
+  statusId: string;
+}
+
 // Get paginated complain
 export interface IGetPaginatedComplaintRequest {
   userId: string;
@@ -23,7 +35,7 @@ export interface IGetPaginatedComplaintRequest {
 }
 
 export interface IGetPaginatedComplaintResponse {
-  complaints: IGetComplaintResponse[];
+  items: IGetComplaintResponse[];
   totalPageCount: number;
   pageNumber: number;
   pageSize: number;
@@ -43,5 +55,4 @@ export interface ICreateComplaintRequest {
 export interface IUpdateComplaintRequest {
   id: string;
   statusId: string;
-  priorityId: string;
 }

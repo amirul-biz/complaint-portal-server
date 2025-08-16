@@ -2,26 +2,13 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
 import { ApiErrorHelper } from "../utils/utils.error-helper.js";
-import { modelGetNewJWTToken } from "../models/model.authenticate.js";
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        name: string;
-        email: string;
-      };
-    }
-  }
-}
 
 export const middlewareJwtAuthenticator = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers["authorization"];
+  const authHeader = req.headers.authorization;
 
   if (!authHeader) {
     throw new ApiErrorHelper(
@@ -41,15 +28,6 @@ export const middlewareJwtAuthenticator = (
 
   jwt.verify(token, process.env.JWT_SECRET as string, (err) => {
     if (!err) {
-      const response = modelGetNewJWTToken(token);
-      const user = response as jwt.JwtPayload;
-
-      req.user = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      };
-
       return next();
     }
 

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import {
   ICreateComplaintRequest,
+  IGetComplaintByIdResponse,
   IGetComplaintResponse,
   IGetPaginatedComplaintRequest,
   IGetPaginatedComplaintResponse,
@@ -76,7 +77,7 @@ export async function modelCreateComplaint(
 export async function modelGetComplaintById(
   userId: string,
   id: string
-): Promise<IGetComplaintResponse> {
+): Promise<IGetComplaintByIdResponse> {
   if (!id) {
     throw new ApiErrorHelper(
       HttpStatusCodeEnum.BAD_REQUEST,
@@ -84,7 +85,7 @@ export async function modelGetComplaintById(
     );
   }
 
-  const complaint = (await getComplaintById(id)) as IGetComplaintResponse;
+  const complaint = (await getComplaintById(id)) as IGetComplaintByIdResponse;
   validateIsComplaintNotExist(complaint, id);
   await validateIsUserAllowedAction(id, userId);
 
@@ -95,9 +96,9 @@ export async function modelGetComplaintById(
     description: complaint.description,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt,
-    priority: complaint.priority,
-    status: complaint.status,
-  } as IGetComplaintResponse;
+    priorityId: complaint.priorityId,
+    statusId: complaint.statusId,
+  } as IGetComplaintByIdResponse;
 }
 
 export async function modelUpdateComplaint(
@@ -111,7 +112,6 @@ export async function modelUpdateComplaint(
     where: { id: data.id },
     data: {
       statusId: data.statusId,
-      priorityId: data.priorityId,
     },
     include: {
       user: { select: { name: true } },
@@ -185,7 +185,7 @@ export async function modelGetPaginatedComplaints(
   }));
 
   return {
-    complaints: complaints,
+    items: complaints,
     totalPageCount: totalPageCount,
     totalComplaintsCount: totalCount,
     pageNumber: pageNumber,

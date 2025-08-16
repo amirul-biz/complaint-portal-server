@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
 import {
   ICreateComplaintRequest,
+  IGetComplaintByIdResponse,
   IGetComplaintResponse,
   IUpdateComplaintRequest,
 } from "../interfaces/interface.complaint.js";
@@ -26,8 +27,8 @@ export function validateIsCreateRequestContainsEmptyField(
 export function validateIsUpdateRequestContainsEmptyField(
   data: IUpdateComplaintRequest
 ) {
-  const isContainsEmptyField = !data.id || !data.priorityId || !data.statusId;
-
+  const isContainsEmptyField = !data.id || !data.statusId;
+  console.log(data);
   if (isContainsEmptyField) {
     throw new ApiErrorHelper(
       HttpStatusCodeEnum.BAD_REQUEST,
@@ -77,7 +78,7 @@ export async function validateIsExceedComplaintLimit(
 }
 
 export function validateIsComplaintNotExist(
-  complaint: IGetComplaintResponse,
+  complaint: IGetComplaintByIdResponse,
   complaintId: string
 ): void {
   if (!complaint) {
@@ -115,7 +116,7 @@ export function isHighPriorityComplaint(description: string): boolean {
 
 export async function getComplaintById(
   id: string
-): Promise<IGetComplaintResponse | null> {
+): Promise<IGetComplaintByIdResponse | null> {
   const complaint = await prisma.complaint.findUnique({
     where: { id },
     include: {
@@ -134,8 +135,8 @@ export async function getComplaintById(
     description: complaint.description,
     createdAt: complaint.createdAt,
     updatedAt: complaint.updatedAt,
-    priority: complaint.priority.name,
-    status: complaint.status.name,
+    priorityId: complaint.priorityId,
+    statusId: complaint.statusId,
   };
 }
 

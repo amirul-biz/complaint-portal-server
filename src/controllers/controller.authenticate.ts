@@ -27,7 +27,7 @@ export async function controllerLogin(
       domain: "localhost",
     });
 
-    res.json(accessToken);
+    res.json({ token: accessToken });
   } catch (error) {
     next(error);
   }
@@ -46,5 +46,5 @@ export const controllerGetNewJWTToken = (req: Request, res: Response) => {
     domain: "localhost",
   });
 
-  return res.json(response.accessToken);
+  return res.json({ token: response.accessToken });
 };
