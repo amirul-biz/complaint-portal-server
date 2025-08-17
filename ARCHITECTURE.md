@@ -1,5 +1,7 @@
 
-(Project overview)
+(Project overview) 
+
+sideNote: view raw for better readability
  
 This is a Complaint Management Portal built as part of a take-home assessment.
 It allows authenticated users to create, view, search, edit, and escalate complaints.
@@ -190,3 +192,4 @@ On login, or As a cron job (scheduled task).
 
 
   
+
