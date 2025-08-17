@@ -27,7 +27,7 @@ export async function controllerLogin(
       domain: "localhost",
     });
 
-    res.json(accessToken);
+    res.json({ token: accessToken });
   } catch (error) {
     next(error);
   }
@@ -46,5 +46,16 @@ export const controllerGetNewJWTToken = (req: Request, res: Response) => {
     domain: "localhost",
   });
 
-  return res.json(response.accessToken);
+  return res.json({ token: response.accessToken });
+};
+
+export const controllerLogout = (req: Request, res: Response) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    domain: "localhost",
+  });
+
+  return res.status(200).json({ message: "Logged out successfully" });
 };

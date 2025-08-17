@@ -5,7 +5,7 @@ export interface ILogin {
 }
 
 // Auth token
+
 export interface IAuthTokens {
-  accessToken: string;
-  refreshToken: string;
+  token: string;
 }

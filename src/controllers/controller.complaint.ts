@@ -1,15 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
+import { StatusEnum } from "../contants/contant.status.enum.js";
 import {
   modelCreateComplaint,
   modelGetComplaintById,
   modelGetPaginatedComplaints,
   modelUpdateComplaint,
 } from "../models/model.complaint.js";
-import { ApiErrorHelper } from "../utils/utils.error-helper.js";
 import { getDecodedJwtInfo } from "../services/service.authenticate.js";
-import { PriorityEnum } from "../contants/constant.priority.enum.js";
-import { StatusEnum } from "../contants/contant.status.enum.js";
 
 export async function controllerCreateComplain(
   req: Request,
@@ -43,13 +41,14 @@ export async function controllerGetComplaintById(
   next: NextFunction
 ) {
   try {
-    const userId = req.user?.id as string;
+    const refreshToken = req.cookies.refreshToken as string;
+    const data = getDecodedJwtInfo(refreshToken);
+    const userId = data.id;
     const { id } = req.params;
     const complaint = await modelGetComplaintById(userId, id);
 
     return res.status(HttpStatusCodeEnum.OK).json({
-      message: "Complaint fetched successfully",
-      complaint,
+      complaint: complaint,
     });
   } catch (error) {
     next(error);
@@ -62,15 +61,16 @@ export async function controllerUpdateComplaint(
   next: NextFunction
 ) {
   try {
-    const userId = req.user?.id as string;
+    const refreshToken = req.cookies.refreshToken as string;
+    const data = getDecodedJwtInfo(refreshToken);
+    const userId = data.id;
     const { id } = req.params;
-    const { statusId, priorityId } = req.body;
+    const statusId = req.body.statusId;
 
     const response = await modelUpdateComplaint(
       {
         id: id,
         statusId: statusId,
-        priorityId: priorityId,
       },
       userId
     );
