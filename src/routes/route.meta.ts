@@ -4,14 +4,19 @@ import {
   controllerGetStatuses,
 } from "../controllers/controller.meta.js";
 import { middlewareJwtAuthenticator } from "../middleware/middleware.authenticate.jwt.js";
+import { baseURL } from "../contants/constant.baseUrl.js";
 
 const routerMeta = Router();
 
 routerMeta.get(
-  "/priorities",
+  `${baseURL}/priorities`,
   middlewareJwtAuthenticator,
   controllerGetPriorities
 );
-routerMeta.get("/statuses", middlewareJwtAuthenticator, controllerGetStatuses);
+routerMeta.get(
+  `${baseURL}/statuses`,
+  middlewareJwtAuthenticator,
+  controllerGetStatuses
+);
 
 export default routerMeta;
