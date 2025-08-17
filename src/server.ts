@@ -6,6 +6,7 @@ import routerAuthenticate from "./routes/route.authenticate.js";
 import { middlewareApiErrorHandler } from "./middleware/middleware.errorHandler.js";
 import routerMeta from "./routes/route.meta.js";
 import cookieParser from "cookie-parser";
+import { baseURL } from "./contants/constant.baseUrl.js";
 
 dotenv.config();
 
@@ -25,9 +26,9 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
-app.use("/", routerComplaint);
-app.use("/", routerAuthenticate);
-app.use("/", routerMeta);
+app.use(`/${baseURL}`, routerComplaint);
+app.use(`/${baseURL}`, routerAuthenticate);
+app.use(`/${baseURL}`, routerMeta);
 app.use(middlewareApiErrorHandler);
 
 app.get("/", (_req, res) => {

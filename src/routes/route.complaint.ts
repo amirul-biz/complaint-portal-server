@@ -16,17 +16,17 @@ routerComplaint.post(
   controllerCreateComplain
 );
 routerComplaint.get(
-  `${baseURL}/complaints-listing`,
+  `/complaints-listing`,
   middlewareJwtAuthenticator,
   controllergetPaginatedComplaints
 );
 routerComplaint.get(
-  `${baseURL}/complaints/:id`,
+  `/complaints/:id`,
   middlewareJwtAuthenticator,
   controllerGetComplaintById
 );
 routerComplaint.patch(
-  `${baseURL}/complaints/:id`,
+  `/complaints/:id`,
   middlewareJwtAuthenticator,
   controllerUpdateComplaint
 );

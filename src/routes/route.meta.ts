@@ -9,14 +9,10 @@ import { baseURL } from "../contants/constant.baseUrl.js";
 const routerMeta = Router();
 
 routerMeta.get(
-  `${baseURL}/priorities`,
+  `/priorities`,
   middlewareJwtAuthenticator,
   controllerGetPriorities
 );
-routerMeta.get(
-  `${baseURL}/statuses`,
-  middlewareJwtAuthenticator,
-  controllerGetStatuses
-);
+routerMeta.get(`/statuses`, middlewareJwtAuthenticator, controllerGetStatuses);
 
 export default routerMeta;
