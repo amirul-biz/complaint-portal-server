@@ -1,84 +1,164 @@
-# Complaint Escalation Portal
 
-## Description
-This is a **Complaint Management Portal** built as part of a take-home assessment.  
-It allows **authenticated users** to create, view, search, edit, and escalate complaints.  
-The application follows a production-ready structure with modular code, proper error handling,  
+###Complain Escalation Portal
+ 
+This is a Complaint Management Portal built as part of a take-home assessment.
+It allows authenticated users to create, view, search, edit, and escalate complaints.
+The application follows a production-ready structure with modular code, proper error handling,
 and optional testing.
 
-**Tech Stack**
-- **Frontend:** Angular
-- **Backend:** Node.js, TypeScript, Express, Prisma
+(Business logic)
+
+1. Escalation Rule — A complaint is auto-escalated if:
+  o priority === HIGH and
+  o status === NEW after 3 working days (exclude Saturdays and Sundays)
+  from createdAt.
+
+2. Rate Limit — A customer can submit max 5 complaints per rolling week (7
+  calendar days). If exceeded, the API returns HTTP 429 with message: "Rate limit
+  exceeded: max 5 complaints per customer per week".
+
+4. Auto-High Priority — If title contains the word "urgent" (case-insensitive), server
+  sets priority = HIGH regardless of the request body.
+
+6. Validation —
+  o title minimum length: 10 characters
+  o description minimum length: 30 characters
+
+## Database Rules
+
 - **Database:** PostgreSQL
+- **ORM:** Prisma
 
-## Features
-- User authentication
-- Create, view, search, and edit complaints
-- Escalate complaints
-- Modular code structure
-- Business rules & validations as per requirements
+**Schema Relationships:**
 
-## Deliverables
-- Private Git repository with incremental commits
-- `README.md` with setup/run instructions
-- `ARCHITECTURE.md` explaining design choices and data model
-- Optional unit/integration tests
+- User → can have many complaints
+- Complaint → linked to one status & one priority
+- Status → NEW, ESCALATED, etc.
+- Priority → LOW, MEDIUM, HIGH
 
----
+## Prisma Schema
 
-## Getting Started
-
-Follow these steps to set up and run the backend locally:
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/amirul-biz/complaint-portal-server.git
-
-# 2. Enter the project folder
-cd complaint-portal-server
-
-# 3. Create an .env file (edit values after creation)
- "DATABASE_URL=\nJWT_SECRET=" > .env
-
-DATABASE_URL="postgresql://postgres:somekey.supabase.co:5432/postgres"
-
-JWT_SECRET="supersecretkey123"
-
-PORT = '3000'
-
-# 4. Install dependencies (runs prisma generate automatically)
-npm install
-
-# 5. Run database migrations
-npx prisma migrate dev
-
-# 6.  Seed the database to see see the credentials
-# npx prisma db seed
-
-
-Note that src\contants\constant.priority.enum.ts and Note that src\contants\contant.status.enum.ts
-should be updated accordingly after seeding based on database row id
-
- sample
-
-src\contants\constant.priority.enum.ts
-
-export enum PriorityEnum {
-  LOW = "057b3b69-0adc-4a8d-adf3-879f2ecea7de",
-  MEDIUM = "d3995e7c-8563-4f56-ae7b-16f67cdc65ab",
-  HIGH = "26597acd-df44-4278-8abe-6087dbc804f1",
+```prisma
+generator client {
+  provider = "prisma-client-js"
 }
 
-Note that src\contants\contant.status.enum.ts
-
-export enum StatusEnum {
-  NEW = "0d01ca6a-2b5c-4b99-a666-4fad7431c501",
-  IN_REVIEW = "5da5cf18-55a4-4606-bf1e-6cc3c1986477",
-  ESCALATED = "cccae2de-ab00-42b2-8ca3-7c8e88d63d62",
-  CLOSED = "e2f62db6-a77e-4923-b1c9-3d84055c1181",
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
+model User {
+  id           String      @id @default(uuid())
+  name         String
+  email        String      @unique
+  passwordHash String      @map("password_hash")
+  complaints   Complaint[]
+}
 
-# 7. Start the development server
-npm run dev
-# Server will start on: http://localhost:3000
+model Complaint {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  statusId String
+  status   Status @relation(fields: [statusId], references: [id])
+
+  priorityId String
+  priority   Priority @relation(fields: [priorityId], references: [id])
+}
+
+model Status {
+  id         String      @id @default(uuid())
+  name       String      @unique
+  complaints Complaint[]
+}
+
+model Priority {
+  id         String      @id @default(uuid())
+  name       String      @unique
+  complaints Complaint[]
+}
+```
+
+## Backend Architecture Overview
+
+- **Technologies:** Node.js, Express, TypeScript, Prisma (PostgreSQL)
+- **Structure:**
+  - Routes → define endpoints
+  - Controllers → handle HTTP requests/responses
+  - Services → contain business logic
+  - Models → communicate with the database
+  - Middleware → authentication, error handling
+  - Enums & Interfaces → type safety and consistency
+
+```
+src/
+ ├── server.ts                 # Main entrypoint (Express server setup)
+ ├── routes/                   # Route definitions
+ │    ├── route.authenticate.ts
+ │    ├── route.complaint.ts
+ │    └── route.meta.ts
+ ├── controllers/              # Handle HTTP requests/responses
+ │    ├── controller.authenticate.ts
+ │    └── controller.complaint.ts
+ ├── models/                   # Database queries (Prisma)
+ │    ├── model.authenticate.ts
+ │    └── model.complaint.ts
+ ├── services/                 # Business logic & rules
+ │    ├── service.authenticate.ts
+ │    └── service.complaints.ts
+ ├── middleware/               # Middlewares
+ │    ├── middleware.errorHandler.ts
+ │    └── middleware.authenticate.jwt.ts
+ ├── enums/                    # Constant values (status, priority, http codes)
+ ├── interfaces/               # TypeScript interfaces
+ ├── utils/                    # Helpers (error handling, date calc, etc.)
+```
+
+## Request Flow
+
+1. Client sends a request (e.g., create a complaint).
+2. Route matches the request path.
+3. Middleware runs (auth check, validation, error handling).
+4. Controller handles request and calls the service/model.
+5. Service applies business rules (rate limit, validations, auto-priority, escalation).
+6. Model queries the database using Prisma.
+7. Response is returned to client.
+
+## Authentication
+
+- Uses JWT tokens (access + refresh).
+- Refresh token is stored in HttpOnly cookie.
+- Middleware `middlewareJwtAuthenticator` checks if user is logged in.
+
+### Endpoints
+
+- `POST /api/v1/auth/login` → login
+- `GET /api/v1/refresh-token` → refresh access token
+- `DELETE /api/v1/logout` → logout
+
+## Error Handling
+
+- Centralized with `middlewareApiErrorHandler`.
+- Errors return a JSON object with `statusCode` and `message`.
+
+Example:
+
+```json
+{
+  "statusCode": 400,
+  "message": "All fields are required"
+}
+```
+
+## Background Jobs
+
+- `autoEscalateComplaints` function checks complaints that need escalation.
+- Can run on login or as a cron job (scheduled task).
+
