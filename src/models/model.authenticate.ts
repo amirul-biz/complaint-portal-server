@@ -1,17 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 import { HttpStatusCodeEnum } from "../contants/constant.http-status.enum.js";
-import { ILogin } from "../interfaces/interface.authenticate.js";
+import { ILogin, IResToken } from "../interfaces/interface.authenticate.js";
 import {
   validateIsLoginHaveValidationError,
   validateIsPasswordMatch,
   validateIsTokenExist,
 } from "../services/service.authenticate.js";
 import { ApiErrorHelper } from "../utils/utils.error-helper.js";
+import { autoEscalateComplaints } from "../services/service.complaints.js";
 
 const prisma = new PrismaClient();
 
-export async function modelAuthenticateLogin(data: ILogin): Promise<{}> {
+export async function modelAuthenticateLogin(data: ILogin): Promise<T> {
   validateIsLoginHaveValidationError(data);
 
   const user = await prisma.user.findUnique({
@@ -26,10 +27,11 @@ export async function modelAuthenticateLogin(data: ILogin): Promise<{}> {
   }
 
   await validateIsPasswordMatch(data.password, user.passwordHash);
+  await autoEscalateComplaints();
 
   const payload = { id: user.id, name: user.name, email: user.email };
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, {
-    expiresIn: "5s",
+    expiresIn: "5m",
   });
 
   const refreshToken = jwt.sign(payload, process.env.JWT_SECRET as string, {

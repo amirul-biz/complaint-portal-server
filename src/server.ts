@@ -14,14 +14,14 @@ const app = express();
 app.use(
   cors({
     origin: "http://localhost:4200",
-    methods: ["GET", "POST", "PATCH", "DELETE", "DELETE"],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true,
   })
 );
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials", "true");
-  next();
-});
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Credentials", "true");
+//   next();
+// });
 
 app.use(express.json());
 app.use(cookieParser());

@@ -7,6 +7,8 @@ import {
   IUpdateComplaintRequest,
 } from "../interfaces/interface.complaint.js";
 import { ApiErrorHelper } from "../utils/utils.error-helper.js";
+import { PriorityEnum } from "../contants/constant.priority.enum.js";
+import { StatusEnum } from "../contants/contant.status.enum.js";
 
 export const prisma = new PrismaClient();
 
@@ -184,5 +186,62 @@ export function validateWordCounts(inputs: {
       HttpStatusCodeEnum.BAD_REQUEST,
       errors.join(" and ")
     );
+  }
+}
+
+export function getFutureWorkingDateExcludingWeekends(
+  startDate: Date,
+  workingDaysToAdd: number
+): Date {
+  const SATURDAY = 6;
+  const SUNDAY = 0;
+
+  let totalSkippedWeekendDays = 0;
+
+  for (let i = 1; i <= workingDaysToAdd; i++) {
+    const futureDate = new Date(startDate);
+    futureDate.setDate(startDate.getDate() + i + totalSkippedWeekendDays);
+
+    const dayOfWeek = futureDate.getDay();
+    if (dayOfWeek === SATURDAY || dayOfWeek === SUNDAY) {
+      totalSkippedWeekendDays++;
+    }
+  }
+
+  const expectedWorkingDay = new Date(startDate);
+  expectedWorkingDay.setDate(
+    startDate.getDate() + workingDaysToAdd + totalSkippedWeekendDays
+  );
+
+  return expectedWorkingDay;
+}
+
+export async function autoEscalateComplaints() {
+  const now = new Date();
+  const numberOfWorkingDays = 1;
+
+  const complaints = await prisma.complaint.findMany({
+    where: {
+      priorityId: PriorityEnum.HIGH,
+      statusId: StatusEnum.NEW,
+    },
+  });
+
+  const toEscalate = complaints.filter((complaint) => {
+    const threshold = getFutureWorkingDateExcludingWeekends(
+      complaint.createdAt,
+      numberOfWorkingDays
+    );
+    return now > threshold;
+  });
+
+  for (const complaint of toEscalate) {
+    await prisma.complaint.update({
+      where: { id: complaint.id },
+      data: {
+        statusId: StatusEnum.ESCALATED,
+        updatedAt: new Date(),
+      },
+    });
   }
 }

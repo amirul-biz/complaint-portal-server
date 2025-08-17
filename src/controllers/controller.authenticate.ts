@@ -24,7 +24,6 @@ export async function controllerLogin(
       secure: false,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain: "localhost",
     });
 
     res.json({ token: accessToken });
@@ -43,7 +42,6 @@ export const controllerGetNewJWTToken = (req: Request, res: Response) => {
     secure: false,
     sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    domain: "localhost",
   });
 
   return res.json({ token: response.accessToken });
